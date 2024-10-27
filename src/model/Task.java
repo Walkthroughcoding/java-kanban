@@ -34,7 +34,7 @@ public class Task {
 
     @Override
     public String toString() {
-        return "model.Task.model.Task{" +
+        return "model.Task{" +
                 "title='" + title + '\'' +
                 ", description='" + description + '\'' +
                 ", status=" + status +
