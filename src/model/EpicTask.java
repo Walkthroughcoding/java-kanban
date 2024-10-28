@@ -5,19 +5,19 @@ import model.enums.StatusEnum;
 import java.util.ArrayList;
 
 public class EpicTask extends Task {
-    ArrayList<Integer> subtaskIds;
+    private ArrayList<Subtask> subtasks; // Заменены индикаторы на обьекты с подзадачами
 
     public EpicTask(String title, String description) {
         super(title, description, StatusEnum.NEW);
-        this.subtaskIds = new ArrayList<>();
+        this.subtasks = new ArrayList<>();
     }
 
-    public ArrayList<Integer> getSubtaskIds() {
-        return subtaskIds;
+    public ArrayList<Subtask> getSubtasks() {
+        return subtasks;
     }
 
-    public void setSubtaskIds(ArrayList<Integer> subtaskIds) {
-        this.subtaskIds = subtaskIds;
+    public void setSubtasks(ArrayList<Subtask> subtasks) {
+        this.subtasks = subtasks;
     }
 
 }
