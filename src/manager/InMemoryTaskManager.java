@@ -5,27 +5,31 @@ import model.Subtask;
 import model.Task;
 import model.enums.StatusEnum;
 
-import java.lang.reflect.Array;
+import java.sql.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class InMemoryTaskManager implements TaskManager {
 
     private int currentId = 1;
-    private HashMap<Integer, Task> taskData = new HashMap<>();
-    private HashMap<Integer, EpicTask> epicData = new HashMap<>();
-    private HashMap<Integer, Subtask> subtaskData = new HashMap<>();
-    private final ArrayList<Task> history = new ArrayList<>();
 
-    public HashMap<Integer, Task> getTaskData() {
+    private Map<Integer, Task> taskData = new HashMap<>();
+    private Map<Integer, EpicTask> epicData = new HashMap<>();
+    private Map<Integer, Subtask> subtaskData = new HashMap<>();
+
+    private final List<Task> history = new ArrayList<>();
+
+    public Map<Integer, Task> getTaskData() {
         return taskData;
     }
 
-    public HashMap<Integer, EpicTask> getEpicData() {
+    public Map<Integer, EpicTask> getEpicData() {
         return epicData;
     }
 
-    public HashMap<Integer, Subtask> getSubtaskData() {
+    public Map<Integer, Subtask> getSubtaskData() {
         return subtaskData;
     }
 
@@ -82,14 +86,14 @@ public class InMemoryTaskManager implements TaskManager {
 
     // Сломал голову на этом методе
     private void updateEpicStatus(EpicTask epicTask) {
-        ArrayList<Subtask> subtasks = epicTask.getSubtasks(); // Получаем список подзадач
+        List<Subtask> subtasks = epicTask.getSubtasks(); // Получаем список подзадач
 
         if (subtasks.isEmpty()) {
             epicTask.setStatus(StatusEnum.NEW);
             return;
         }
 
-        ArrayList<StatusEnum> uniqueStatuses = new ArrayList<>();
+        List<StatusEnum> uniqueStatuses = new ArrayList<>();
 
         for (Subtask subtask : subtasks) {
             if (subtask != null) {
@@ -140,7 +144,7 @@ public class InMemoryTaskManager implements TaskManager {
         EpicTask epicTask = epicData.remove(id);
         if (epicTask != null) {
             // Удаляем все подзадачи, связанные с эпиком
-            ArrayList<Subtask> subtasks = epicTask.getSubtasks();
+            List<Subtask> subtasks = epicTask.getSubtasks();
             for (Subtask subtask : subtasks) {
                 subtaskData.remove(subtask.getId());
             }
@@ -165,15 +169,15 @@ public class InMemoryTaskManager implements TaskManager {
         }
     }
 
-    public ArrayList<Task> getAllTasks() {
-        ArrayList<Task> allTasks = new ArrayList<>();
+    public List<Task> getAllTasks() {
+        List<Task> allTasks = new ArrayList<>();
         allTasks.addAll(taskData.values());
         allTasks.addAll(epicData.values());
         allTasks.addAll(subtaskData.values());
         return allTasks;
     }
 
-    public ArrayList<Subtask> getSubtasksOfEpic(int epicId) {
+    public List<Subtask> getSubtasksOfEpic(int epicId) {
         EpicTask epic = epicData.get(epicId);
         if (epic != null) {
             return epic.getSubtasks();
@@ -207,7 +211,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public ArrayList<Task> getHistory() {
+    public List<Task> getHistory() {
         return new ArrayList<>(history); // Возвращаем копию списка
     }
 }
