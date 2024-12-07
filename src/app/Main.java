@@ -36,5 +36,9 @@ public class Main {
         for (Subtask subtask : taskManager.getSubtasksOfEpic(epic1.getId())) {
             System.out.println(subtask);
         }
+            System.out.println("История задач:");
+            for (Task task : taskManager.getHistory()) {
+                System.out.println(task);
+            }
+        }
     }
-}
