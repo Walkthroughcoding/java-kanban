@@ -2,7 +2,6 @@ package manager;
 
 import model.*;
 import model.enums.StatusEnum;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
