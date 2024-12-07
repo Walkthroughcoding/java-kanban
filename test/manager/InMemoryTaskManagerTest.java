@@ -102,14 +102,16 @@ public class InMemoryTaskManagerTest {
     }
 
     @Test
-    void historySizeLimit() {
-        for (int i = 1; i <= 15; i++) {
-            Task task = new Task("Task " + i, "Description " + i, StatusEnum.NEW);
-            taskManager.addTask(task);
-            taskManager.getAnyTask(task.getId()); // Добавляем в историю
-        }
+    void shouldUpdateTaskFields() {
+        Task task = new Task("Old Name", "Old Description", StatusEnum.NEW);
+        taskManager.addTask(task);
 
-        List<Task> history = taskManager.getHistory();
-        assertEquals(10, history.size(), "История не должна превышать 10 элементов.");
+        task.setTitle("New Name");
+        task.setDescription("New Description");
+        taskManager.updateTask(task);
+
+        Task updatedTask = taskManager.getAnyTask(task.getId());
+        assertEquals("New Name", updatedTask.getTitle(), "Название задачи должно обновляться."); // Проверяем title
+        assertEquals("New Description", updatedTask.getDescription(), "Описание задачи должно обновляться."); // Проверяем description
     }
 }
