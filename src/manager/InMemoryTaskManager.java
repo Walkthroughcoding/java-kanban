@@ -14,9 +14,9 @@ public class InMemoryTaskManager implements TaskManager {
 
     private int currentId = 1;
 
-    private Map<Integer, Task> taskData = new HashMap<>();
-    private Map<Integer, EpicTask> epicData = new HashMap<>();
-    private Map<Integer, Subtask> subtaskData = new HashMap<>();
+    protected  Map<Integer, Task> taskData = new HashMap<>();
+    protected  Map<Integer, EpicTask> epicData = new HashMap<>();
+    protected  Map<Integer, Subtask> subtaskData = new HashMap<>();
 
     private final HistoryManager historyManager = Managers.getDefaultHistory();
 
@@ -40,6 +40,10 @@ public class InMemoryTaskManager implements TaskManager {
         int id = generateId();
         task.setId(id);
         taskData.put(id, task);
+    }
+
+    protected void setCurrentId(int currentId) {
+        this.currentId = currentId;
     }
 
     public void addEpic(EpicTask epicTask) {
