@@ -11,7 +11,7 @@ public class Main {
         File file = new File("tasks.csv");
 
         // Создаём FileBackedTaskManager
-        TaskManager taskManager = new FileBackedTaskManager(file);
+        TaskManager taskManager = FileBackedTaskManager.create(file);
 
         // Добавляем задачи
         Task task1 = new Task("Досмотреть сериал", "Досмотреть 6-й сезон Сопрано", StatusEnum.NEW);

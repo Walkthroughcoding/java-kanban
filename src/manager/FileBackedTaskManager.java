@@ -11,8 +11,12 @@ import java.util.List;
 public class FileBackedTaskManager extends InMemoryTaskManager {
     private final File file;
 
-    public FileBackedTaskManager(File file) {
+    private  FileBackedTaskManager(File file) {
         this.file = file;
+    }
+
+    public static FileBackedTaskManager create(File file) {
+        return new FileBackedTaskManager(file);
     }
 
     public void save() {
@@ -82,7 +86,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
             manager.setCurrentId(maxId + 1);
         } catch (IOException e) {
-            throw new ManagerSaveException("Ошибка при загрузке задач из файла: " + e.getMessage());
+            throw new ManagerLoadException("Ошибка при загрузке задач из файла: " + e.getMessage());
         }
         return manager;
     }
