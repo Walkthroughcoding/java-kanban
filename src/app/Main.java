@@ -10,8 +10,7 @@ public class Main {
     public static void main(String[] args) {
         File file = new File("tasks.csv");
 
-        // Создаём FileBackedTaskManager
-        TaskManager taskManager = FileBackedTaskManager.create(file);
+        TaskManager taskManager = FileBackedTaskManager.loadFromFile(file);
 
         // Добавляем задачи
         Task task1 = new Task("Досмотреть сериал", "Досмотреть 6-й сезон Сопрано", StatusEnum.NEW);
