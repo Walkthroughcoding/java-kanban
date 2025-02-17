@@ -1,16 +1,18 @@
 package app;
 
-import manager.Managers;
+import manager.FileBackedTaskManager;
 import model.enums.StatusEnum;
 import model.*;
 import manager.TaskManager;
+import java.io.File;
 
 public class Main {
-
     public static void main(String[] args) {
-        TaskManager taskManager = Managers.getDefault();
+        File file = new File("tasks.csv");
 
-        // Создаём задачи
+        TaskManager taskManager = FileBackedTaskManager.loadFromFile(file);
+
+        // Добавляем задачи
         Task task1 = new Task("Досмотреть сериал", "Досмотреть 6-й сезон Сопрано", StatusEnum.NEW);
         Task task2 = new Task("Сделать домашнее задание", "Написать проект по Java", StatusEnum.NEW);
         taskManager.addTask(task1);
@@ -25,16 +27,34 @@ public class Main {
         taskManager.addSubtask(subtask1);
         taskManager.addSubtask(subtask2);
 
-        // Печатаем все задачи
-        System.out.println("=== Список всех задач ===");
+        // Печатаем все задачи перед перезапуском
+        System.out.println("=== Список всех задач перед перезапуском ===");
         for (Task task : taskManager.getAllTasks()) {
             System.out.println(task);
         }
 
-        // Печатаем подзадачи эпика
-        System.out.println("\n=== Подзадачи эпика ===");
-        for (Subtask subtask : taskManager.getSubtasksOfEpic(epic1.getId())) {
-            System.out.println(subtask);
+        // Загружаем задачи из файла
+        TaskManager loadedTaskManager = FileBackedTaskManager.loadFromFile(file);
+
+        // Проверяем загруженные задачи
+        System.out.println("\n=== Список всех задач после перезапуска ===");
+        for (Task task : loadedTaskManager.getAllTasks()) {
+            System.out.println(task);
+        }
+
+        // Проверяем эпики и подзадачи через instanceof
+        System.out.println("\n=== Эпики ===");
+        for (Task task : loadedTaskManager.getAllTasks()) {
+            if (task instanceof EpicTask) {
+                System.out.println(task);
+            }
+        }
+
+        System.out.println("\n=== Подзадачи ===");
+        for (Task task : loadedTaskManager.getAllTasks()) {
+            if (task instanceof Subtask) {
+                System.out.println(task);
+            }
         }
     }
 }

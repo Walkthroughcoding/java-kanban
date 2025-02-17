@@ -5,7 +5,6 @@ import model.Subtask;
 import model.Task;
 import model.enums.StatusEnum;
 
-import java.sql.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,11 +14,11 @@ public class InMemoryTaskManager implements TaskManager {
 
     private int currentId = 1;
 
-    private Map<Integer, Task> taskData = new HashMap<>();
-    private Map<Integer, EpicTask> epicData = new HashMap<>();
-    private Map<Integer, Subtask> subtaskData = new HashMap<>();
+    protected  Map<Integer, Task> taskData = new HashMap<>();
+    protected  Map<Integer, EpicTask> epicData = new HashMap<>();
+    protected  Map<Integer, Subtask> subtaskData = new HashMap<>();
 
-    private final List<Task> history = new ArrayList<>();
+    private final HistoryManager historyManager = Managers.getDefaultHistory();
 
     public Map<Integer, Task> getTaskData() {
         return taskData;
@@ -41,6 +40,10 @@ public class InMemoryTaskManager implements TaskManager {
         int id = generateId();
         task.setId(id);
         taskData.put(id, task);
+    }
+
+    protected void setCurrentId(int currentId) {
+        this.currentId = currentId;
     }
 
     public void addEpic(EpicTask epicTask) {
@@ -131,15 +134,6 @@ public class InMemoryTaskManager implements TaskManager {
         }
     }
 
-    public void deleteTask(int id) {
-        Task task = taskData.remove(id);
-        if (task != null) {
-            System.out.println("Задача с id " + id + " удалена.");
-        } else {
-            System.out.println("Задача с id " + id + " не найдена.");
-        }
-    }
-
     public void deleteEpic(int id) {
         EpicTask epicTask = epicData.remove(id);
         if (epicTask != null) {
@@ -154,18 +148,14 @@ public class InMemoryTaskManager implements TaskManager {
         }
     }
 
-    public void deleteSubtask(int id) {
-        Subtask subtask = subtaskData.remove(id);
-        if (subtask != null) {
-            int epicId = subtask.getEpicId();
-            EpicTask epicTask = epicData.get(epicId);
-            if (epicTask != null) {
-                epicTask.getSubtasks().remove(subtask); // Преобразуем id в Integer и удаляем его из списка subtaskIds
-                updateEpicStatus(epicTask); // Обновляем статус эпика
-            }
-            System.out.println("Подзадача с id " + id + " удалена.");
+    @Override
+    public void deleteTask(int id) {
+        Task task = taskData.remove(id);
+        if (task != null) {
+            historyManager.remove(id); // Удаляем задачу из истории через HistoryManager
+            System.out.println("Задача с id " + id + " удалена.");
         } else {
-            System.out.println("Подзадача с id " + id + " не найдена.");
+            System.out.println("Задача с id " + id + " не найдена.");
         }
     }
 
@@ -187,6 +177,7 @@ public class InMemoryTaskManager implements TaskManager {
         }
     }
 
+
     @Override
     public Task getAnyTask(int id) {
         Task task = taskData.get(id);
@@ -198,20 +189,33 @@ public class InMemoryTaskManager implements TaskManager {
         }
 
         if (task != null) {
-            addToHistory(task); // Добавляем в историю
+            historyManager.add(task); // Добавляем в историю
         }
         return task;
     }
 
-    private void addToHistory(Task task) {
-        if (history.size() == 10) { // Лимит истории - 10 задач
-            history.remove(0); // Удаляем самую старую задачу
+    @Override
+    public void deleteSubtask(int id) {
+        // Удаляем подзадачу из данных
+        Subtask subtask = subtaskData.remove(id);
+        if (subtask != null) {
+            // Если подзадача найдена, удаляем её из эпика
+            int epicId = subtask.getEpicId();
+            EpicTask epicTask = epicData.get(epicId);
+            if (epicTask != null) {
+                epicTask.getSubtasks().remove(subtask);
+                updateEpicStatus(epicTask); // Обновляем статус эпика
+            }
+            // Удаляем подзадачу из истории
+            historyManager.remove(id);
+            System.out.println("Подзадача с id " + id + " удалена.");
+        } else {
+            System.out.println("Подзадача с id " + id + " не найдена.");
         }
-        history.add(task);
     }
 
     @Override
     public List<Task> getHistory() {
-        return new ArrayList<>(history); // Возвращаем копию списка
+        return historyManager.getHistory(); // Возвращаем копию списка
     }
 }
