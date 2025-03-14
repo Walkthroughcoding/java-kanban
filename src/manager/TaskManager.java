@@ -32,4 +32,7 @@ public interface TaskManager {
     Task getAnyTask(int id);
 
     List<Task> getHistory();
+
+    List<Task> getPrioritizedTasks();
+
 }

@@ -4,6 +4,9 @@ import model.Task;
 import model.enums.StatusEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import java.time.LocalDateTime;
+import java.time.Duration;
+
 
 import java.io.File;
 
@@ -23,7 +26,7 @@ class FileBackedTaskManagerTest {
 
     @Test
     void save() {
-        Task task = new Task("Task 1", "Description 1", StatusEnum.NEW);
+        Task task = new Task("Task 1", "Description 1", StatusEnum.NEW, Duration.ofMinutes(60), LocalDateTime.now());
         manager.addTask(task);
 
         manager.save();
@@ -33,7 +36,7 @@ class FileBackedTaskManagerTest {
 
     @Test
     void loadFromFile() {
-        Task task = new Task("Task 1", "Description 1", StatusEnum.NEW);
+        Task task = new Task("Task 1", "Description 1", StatusEnum.NEW, Duration.ofMinutes(60), LocalDateTime.now());
         manager.addTask(task);
         manager.save();
 
@@ -45,7 +48,7 @@ class FileBackedTaskManagerTest {
 
     @Test
     void addTask() {
-        Task task = new Task("Task 1", "Description 1", StatusEnum.NEW);
+        Task task = new Task("Название", "Описание", StatusEnum.NEW, Duration.ofMinutes(60), LocalDateTime.now());
         manager.addTask(task);
 
         assertEquals(1, manager.getAllTasks().size(), "Должна быть добавлена одна задача.");
@@ -54,7 +57,7 @@ class FileBackedTaskManagerTest {
 
     @Test
     void updateTask() {
-        Task task = new Task("Task 1", "Description 1", StatusEnum.NEW);
+        Task task = new Task("Task 1", "Description 1", StatusEnum.NEW, Duration.ofMinutes(60), LocalDateTime.now());
         manager.addTask(task);
 
         task.setTitle("Updated Task 1");
@@ -65,7 +68,7 @@ class FileBackedTaskManagerTest {
 
     @Test
     void deleteTask() {
-        Task task = new Task("Task 1", "Description 1", StatusEnum.NEW);
+        Task task = new Task("Task 1", "Description 1", StatusEnum.NEW, Duration.ofMinutes(60), LocalDateTime.now());
         manager.addTask(task);
 
         manager.deleteTask(task.getId());

@@ -2,21 +2,48 @@ package model;
 
 import model.enums.StatusEnum;
 
+import java.time.LocalDateTime;
+import java.time.Duration;
+
 public class Task {
 
     private String title;
     private String description;
     private StatusEnum status;
     private int id;
+    private LocalDateTime startTime;
+    private Duration duration;
 
-    public Task(String title, String description, StatusEnum status) {
+    public Task(String title, String description, StatusEnum status, Duration duration, LocalDateTime startTime) {
         this.title = title;
         this.description = description;
         this.status = status;
+        this.duration = duration;
+        this.startTime = startTime;
+    }
+
+    public Duration getDuration() {
+        return duration;
+    }
+
+    public void setDuration(Duration duration) {
+        this.duration = duration;
+    }
+
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public LocalDateTime getEndTime() {
+        return (startTime != null && duration != null) ? startTime.plus(duration) : null;
     }
 
     public Task() {
-        this.status = StatusEnum.NEW;
+        this("No Title", "No Description", StatusEnum.NEW, null, null);
     }
 
     @Override
@@ -34,12 +61,9 @@ public class Task {
 
     @Override
     public String toString() {
-        return "model.Task{" +
-                "title='" + title + '\'' +
-                ", description='" + description + '\'' +
-                ", status=" + status +
-                ", id=" + id +
-                '}';
+        return id + "," + title + "," + description + "," + status + ","
+                + (startTime != null ? startTime.toString() : "null") + ","
+                + (duration != null ? duration.toMinutes() : "null");
     }
 
     public String getTitle() {
@@ -72,5 +96,14 @@ public class Task {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public static Task fromString(String line) {
+        String[] fields = line.split(",");
+        return new Task(fields[1], fields[2],
+                StatusEnum.valueOf(fields[3]), // Передаём status в конструктор
+                fields[5].equals("null") ? null : Duration.ofMinutes(Long.parseLong(fields[5])),
+                fields[4].equals("null") ? null : LocalDateTime.parse(fields[4])
+        );
     }
 }

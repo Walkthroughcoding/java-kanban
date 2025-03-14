@@ -6,6 +6,8 @@ import model.Subtask;
 import model.enums.StatusEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import java.time.Duration;
+import java.time.LocalDateTime;
 
 import java.util.List;
 
@@ -22,7 +24,8 @@ public class InMemoryTaskManagerTest {
 
     @Test
     void addNewTask() {
-        Task task = new Task("Test Task", "Test Description", StatusEnum.NEW);
+        Task task = new Task("Task 1", "Description 1", StatusEnum.NEW,
+                     Duration.ofMinutes(60), LocalDateTime.now());
         taskManager.addTask(task);
         Task retrievedTask = taskManager.getAnyTask(task.getId());
 
@@ -35,8 +38,10 @@ public class InMemoryTaskManagerTest {
         EpicTask epic = new EpicTask("Test Epic", "Test Epic Description");
         taskManager.addEpic(epic);
 
-        Subtask subtask = new Subtask("Test Subtask", "Test Subtask Description", StatusEnum.NEW, epic.getId());
-        taskManager.addSubtask(subtask);
+        Subtask subtask = new Subtask("Test Subtask", "Test Subtask Description", StatusEnum.NEW,
+                Duration.ofMinutes(45), LocalDateTime.now().plusMinutes(30), epic.getId());
+
+        taskManager.addSubtask(subtask); // ✅ Добавляем подзадачу в менеджер
 
         EpicTask retrievedEpic = (EpicTask) taskManager.getAnyTask(epic.getId());
         List<Subtask> subtasks = taskManager.getSubtasksOfEpic(epic.getId());
@@ -48,7 +53,8 @@ public class InMemoryTaskManagerTest {
 
     @Test
     void cannotAddSubtaskToNonExistingEpic() {
-        Subtask subtask = new Subtask("Orphan Subtask", "Should not be added", StatusEnum.NEW, 999);
+        Subtask subtask = new Subtask("Orphan Subtask", "Should not be added", StatusEnum.NEW,
+                Duration.ofMinutes(45), LocalDateTime.now().plusMinutes(10), 999); // ✅ Добавили Duration и LocalDateTime
 
         taskManager.addSubtask(subtask);
         assertNull(taskManager.getAnyTask(subtask.getId()), "Подзадача не должна быть добавлена к несуществующему эпику.");
@@ -56,11 +62,8 @@ public class InMemoryTaskManagerTest {
 
     @Test
     void taskEqualityById() {
-        Task task1 = new Task("Task 1", "Description 1", StatusEnum.NEW);
-        taskManager.addTask(task1);
-
-        Task task2 = new Task("Task 1", "Description 1", StatusEnum.NEW);
-        task2.setId(task1.getId());
+        Task task1 = new Task("Task 1", "Description 1", StatusEnum.NEW, Duration.ofMinutes(60), LocalDateTime.now());
+        Task task2 = new Task("Task 1", "Description 1", StatusEnum.NEW, Duration.ofMinutes(60), LocalDateTime.now());
 
         assertEquals(task1, task2, "Задачи с одинаковым ID должны быть равны.");
     }
@@ -70,21 +73,28 @@ public class InMemoryTaskManagerTest {
         EpicTask epic = new EpicTask("Test Epic", "Test Epic Description");
         taskManager.addEpic(epic);
 
-        Subtask subtask1 = new Subtask("Subtask 1", "Description", StatusEnum.NEW, epic.getId());
-        Subtask subtask2 = new Subtask("Subtask 2", "Description", StatusEnum.DONE, epic.getId());
+        Subtask subtask1 = new Subtask("Subtask 1", "Description", StatusEnum.NEW,
+                Duration.ofMinutes(30), LocalDateTime.now().plusMinutes(10), epic.getId());
+        Subtask subtask2 = new Subtask("Subtask 2", "Description", StatusEnum.DONE,
+                Duration.ofMinutes(30), LocalDateTime.now().plusMinutes(40), epic.getId());
+
+        // 🔹 Нужно добавить подзадачи в taskManager, иначе статус эпика не обновится!
         taskManager.addSubtask(subtask1);
         taskManager.addSubtask(subtask2);
 
         EpicTask retrievedEpic = (EpicTask) taskManager.getAnyTask(epic.getId());
-        assertEquals(StatusEnum.IN_PROGRESS, retrievedEpic.getStatus(), "Эпик должен быть IN_PROGRESS, если его подзадачи имеют разные статусы.");
+        assertEquals(StatusEnum.IN_PROGRESS, retrievedEpic.getStatus(),
+                "Эпик должен быть IN_PROGRESS, если его подзадачи имеют разные статусы.");
     }
 
     @Test
     void deleteTaskRemovesTask() {
-        Task task = new Task("Test Task", "Description", StatusEnum.NEW);
-        taskManager.addTask(task);
+        Task task = new Task("Test Task", "Description", StatusEnum.NEW,
+                Duration.ofMinutes(60), LocalDateTime.now()); // ✅ Добавили Duration и LocalDateTime
 
+        taskManager.addTask(task);
         taskManager.deleteTask(task.getId());
+
         assertNull(taskManager.getAnyTask(task.getId()), "Удалённая задача не должна существовать.");
     }
 
@@ -93,8 +103,8 @@ public class InMemoryTaskManagerTest {
         EpicTask epic = new EpicTask("Test Epic", "Description");
         taskManager.addEpic(epic);
 
-        Subtask subtask = new Subtask("Test Subtask", "Description", StatusEnum.DONE, epic.getId());
-        taskManager.addSubtask(subtask);
+        Subtask subtask = new Subtask("Test Subtask", "Description", StatusEnum.DONE, 
+                              Duration.ofMinutes(20), LocalDateTime.now().plusMinutes(15), epic.getId());        taskManager.addSubtask(subtask);
 
         taskManager.deleteSubtask(subtask.getId());
         EpicTask retrievedEpic = (EpicTask) taskManager.getAnyTask(epic.getId());
@@ -103,7 +113,7 @@ public class InMemoryTaskManagerTest {
 
     @Test
     void shouldUpdateTaskFields() {
-        Task task = new Task("Old Name", "Old Description", StatusEnum.NEW);
+        Task task = new Task("Old Name", "Old Description", StatusEnum.NEW, Duration.ofMinutes(90), LocalDateTime.now());
         taskManager.addTask(task);
 
         task.setTitle("New Name");
