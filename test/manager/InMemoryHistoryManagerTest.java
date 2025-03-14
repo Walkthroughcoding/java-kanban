@@ -4,6 +4,7 @@ import model.*;
 import model.enums.StatusEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import java.time.Duration;
 import java.time.LocalDateTime;
 
@@ -52,12 +53,12 @@ class InMemoryHistoryManagerTest {
 
     @Test
     void shouldNotLimitHistorySize() {
-        // Добавляем 15 задач
         for (int i = 0; i < 15; i++) {
             Task task = new Task("Task " + i, "Description " + i, StatusEnum.NEW,
                     Duration.ofMinutes(60), LocalDateTime.now().plusMinutes(i * 10));
             task.setId(i);
             historyManager.add(task);
         }
+        assertEquals(15, historyManager.getHistory().size(), "История должна содержать 15 задач.");
     }
 }

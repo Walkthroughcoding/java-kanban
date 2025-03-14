@@ -6,6 +6,7 @@ import model.Subtask;
 import model.enums.StatusEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import java.time.Duration;
 import java.time.LocalDateTime;
 
@@ -25,7 +26,7 @@ public class InMemoryTaskManagerTest {
     @Test
     void addNewTask() {
         Task task = new Task("Task 1", "Description 1", StatusEnum.NEW,
-                     Duration.ofMinutes(60), LocalDateTime.now());
+                Duration.ofMinutes(60), LocalDateTime.now());
         taskManager.addTask(task);
         Task retrievedTask = taskManager.getAnyTask(task.getId());
 
@@ -41,7 +42,7 @@ public class InMemoryTaskManagerTest {
         Subtask subtask = new Subtask("Test Subtask", "Test Subtask Description", StatusEnum.NEW,
                 Duration.ofMinutes(45), LocalDateTime.now().plusMinutes(30), epic.getId());
 
-        taskManager.addSubtask(subtask); // ✅ Добавляем подзадачу в менеджер
+        taskManager.addSubtask(subtask); //  Добавляем подзадачу в менеджер
 
         EpicTask retrievedEpic = (EpicTask) taskManager.getAnyTask(epic.getId());
         List<Subtask> subtasks = taskManager.getSubtasksOfEpic(epic.getId());
@@ -65,6 +66,9 @@ public class InMemoryTaskManagerTest {
         Task task1 = new Task("Task 1", "Description 1", StatusEnum.NEW, Duration.ofMinutes(60), LocalDateTime.now());
         Task task2 = new Task("Task 1", "Description 1", StatusEnum.NEW, Duration.ofMinutes(60), LocalDateTime.now());
 
+        task1.setId(1);
+        task2.setId(1); // ID должны быть одинаковыми
+
         assertEquals(task1, task2, "Задачи с одинаковым ID должны быть равны.");
     }
 
@@ -78,8 +82,7 @@ public class InMemoryTaskManagerTest {
         Subtask subtask2 = new Subtask("Subtask 2", "Description", StatusEnum.DONE,
                 Duration.ofMinutes(30), LocalDateTime.now().plusMinutes(40), epic.getId());
 
-        // 🔹 Нужно добавить подзадачи в taskManager, иначе статус эпика не обновится!
-        taskManager.addSubtask(subtask1);
+        taskManager.addSubtask(subtask1); // 🔹 Добавляем подзадачи в менеджер
         taskManager.addSubtask(subtask2);
 
         EpicTask retrievedEpic = (EpicTask) taskManager.getAnyTask(epic.getId());
@@ -103,8 +106,9 @@ public class InMemoryTaskManagerTest {
         EpicTask epic = new EpicTask("Test Epic", "Description");
         taskManager.addEpic(epic);
 
-        Subtask subtask = new Subtask("Test Subtask", "Description", StatusEnum.DONE, 
-                              Duration.ofMinutes(20), LocalDateTime.now().plusMinutes(15), epic.getId());        taskManager.addSubtask(subtask);
+        Subtask subtask = new Subtask("Test Subtask", "Description", StatusEnum.DONE,
+                Duration.ofMinutes(20), LocalDateTime.now().plusMinutes(15), epic.getId());
+        taskManager.addSubtask(subtask);
 
         taskManager.deleteSubtask(subtask.getId());
         EpicTask retrievedEpic = (EpicTask) taskManager.getAnyTask(epic.getId());

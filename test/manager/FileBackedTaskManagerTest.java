@@ -4,6 +4,7 @@ import model.Task;
 import model.enums.StatusEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import java.time.LocalDateTime;
 import java.time.Duration;
 
@@ -48,7 +49,7 @@ class FileBackedTaskManagerTest {
 
     @Test
     void addTask() {
-        Task task = new Task("Название", "Описание", StatusEnum.NEW, Duration.ofMinutes(60), LocalDateTime.now());
+        Task task = new Task("Task 1", "Description 1", StatusEnum.NEW, Duration.ofMinutes(60), LocalDateTime.now());
         manager.addTask(task);
 
         assertEquals(1, manager.getAllTasks().size(), "Должна быть добавлена одна задача.");
