@@ -1,5 +1,7 @@
 package manager;
 
+import manager.exceptions.TaskNotFoundException;
+import manager.exceptions.TaskTimeConflictException;
 import model.Task;
 import model.enums.StatusEnum;
 import org.junit.jupiter.api.BeforeEach;
@@ -7,8 +9,6 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.time.Duration;
-
-
 import java.io.File;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -26,17 +26,16 @@ class FileBackedTaskManagerTest {
     }
 
     @Test
-    void save() {
+    void save() throws TaskTimeConflictException {
         Task task = new Task("Task 1", "Description 1", StatusEnum.NEW, Duration.ofMinutes(60), LocalDateTime.now());
         manager.addTask(task);
-
         manager.save();
 
         assertTrue(tempFile.length() > 0, "Файл должен быть не пустым после сохранения.");
     }
 
     @Test
-    void loadFromFile() {
+    void loadFromFile() throws TaskTimeConflictException {
         Task task = new Task("Task 1", "Description 1", StatusEnum.NEW, Duration.ofMinutes(60), LocalDateTime.now());
         manager.addTask(task);
         manager.save();
@@ -48,7 +47,7 @@ class FileBackedTaskManagerTest {
     }
 
     @Test
-    void addTask() {
+    void addTask() throws TaskTimeConflictException {
         Task task = new Task("Task 1", "Description 1", StatusEnum.NEW, Duration.ofMinutes(60), LocalDateTime.now());
         manager.addTask(task);
 
@@ -57,7 +56,7 @@ class FileBackedTaskManagerTest {
     }
 
     @Test
-    void updateTask() {
+    void updateTask() throws TaskTimeConflictException {
         Task task = new Task("Task 1", "Description 1", StatusEnum.NEW, Duration.ofMinutes(60), LocalDateTime.now());
         manager.addTask(task);
 
@@ -68,12 +67,20 @@ class FileBackedTaskManagerTest {
     }
 
     @Test
-    void deleteTask() {
+    void deleteTask() throws TaskTimeConflictException, TaskNotFoundException {
         Task task = new Task("Task 1", "Description 1", StatusEnum.NEW, Duration.ofMinutes(60), LocalDateTime.now());
         manager.addTask(task);
 
-        manager.deleteTask(task.getId());
-
+        assertDoesNotThrow(() -> manager.deleteTask(task.getId()), "Удаление существующей задачи не должно выбрасывать исключение.");
         assertTrue(manager.getAllTasks().isEmpty(), "Все задачи должны быть удалены.");
+    }
+
+    @Test
+    void deleteNonExistingTaskThrowsException() {
+        TaskNotFoundException thrown = assertThrows(TaskNotFoundException.class, () -> {
+            manager.deleteTask(999);
+        });
+
+        assertEquals("Ошибка: Задача с id 999 не найдена.", thrown.getMessage());
     }
 }

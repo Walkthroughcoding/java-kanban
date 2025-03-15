@@ -1,5 +1,7 @@
 package manager;
 
+import manager.exceptions.TaskNotFoundException;
+import manager.exceptions.TaskTimeConflictException;
 import model.Task;
 import model.EpicTask;
 import model.Subtask;
@@ -24,14 +26,33 @@ public class InMemoryTaskManagerTest {
     }
 
     @Test
-    void addNewTask() {
+    void addNewTaskWithoutConflict() throws TaskTimeConflictException {
         Task task = new Task("Task 1", "Description 1", StatusEnum.NEW,
                 Duration.ofMinutes(60), LocalDateTime.now());
-        taskManager.addTask(task);
-        Task retrievedTask = taskManager.getAnyTask(task.getId());
 
+        assertDoesNotThrow(() -> taskManager.addTask(task),
+                "Не должно быть исключения при добавлении корректной задачи.");
+
+        Task retrievedTask = taskManager.getAnyTask(task.getId());
         assertNotNull(retrievedTask, "Задача не должна быть null.");
         assertEquals(task, retrievedTask, "Добавленная и полученная задачи должны совпадать.");
+    }
+
+    @Test
+    void addNewTaskWithConflictThrowsException() {
+        Task task1 = new Task("Task 1", "Description", StatusEnum.NEW,
+                Duration.ofMinutes(60), LocalDateTime.now());
+
+        Task task2 = new Task("Task 2", "Description", StatusEnum.NEW,
+                Duration.ofMinutes(60), LocalDateTime.now().plusMinutes(30)); // 🔥 Пересекающееся время
+
+        assertDoesNotThrow(() -> taskManager.addTask(task1), "Первая задача добавляется без ошибки.");
+
+        TaskTimeConflictException thrown = assertThrows(TaskTimeConflictException.class, () -> {
+            taskManager.addTask(task2);
+        });
+
+        assertEquals("Ошибка: Задача пересекается по времени с другой задачей.", thrown.getMessage());
     }
 
     @Test
@@ -42,7 +63,8 @@ public class InMemoryTaskManagerTest {
         Subtask subtask = new Subtask("Test Subtask", "Test Subtask Description", StatusEnum.NEW,
                 Duration.ofMinutes(45), LocalDateTime.now().plusMinutes(30), epic.getId());
 
-        taskManager.addSubtask(subtask); //  Добавляем подзадачу в менеджер
+        assertDoesNotThrow(() -> taskManager.addSubtask(subtask),
+                "Добавление подзадачи не должно вызывать исключение.");
 
         EpicTask retrievedEpic = (EpicTask) taskManager.getAnyTask(epic.getId());
         List<Subtask> subtasks = taskManager.getSubtasksOfEpic(epic.getId());
@@ -91,9 +113,9 @@ public class InMemoryTaskManagerTest {
     }
 
     @Test
-    void deleteTaskRemovesTask() {
+    void deleteTaskRemovesTask() throws TaskTimeConflictException {
         Task task = new Task("Test Task", "Description", StatusEnum.NEW,
-                Duration.ofMinutes(60), LocalDateTime.now()); // ✅ Добавили Duration и LocalDateTime
+                Duration.ofMinutes(60), LocalDateTime.now());
 
         taskManager.addTask(task);
         taskManager.deleteTask(task.getId());
@@ -102,7 +124,7 @@ public class InMemoryTaskManagerTest {
     }
 
     @Test
-    void deleteSubtaskUpdatesEpic() {
+    void deleteSubtaskUpdatesEpic() throws TaskNotFoundException {
         EpicTask epic = new EpicTask("Test Epic", "Description");
         taskManager.addEpic(epic);
 
@@ -110,14 +132,19 @@ public class InMemoryTaskManagerTest {
                 Duration.ofMinutes(20), LocalDateTime.now().plusMinutes(15), epic.getId());
         taskManager.addSubtask(subtask);
 
-        taskManager.deleteSubtask(subtask.getId());
+        assertDoesNotThrow(() -> taskManager.deleteSubtask(subtask.getId()),
+                "Удаление подзадачи не должно выбрасывать исключение.");
+
         EpicTask retrievedEpic = (EpicTask) taskManager.getAnyTask(epic.getId());
-        assertEquals(StatusEnum.NEW, retrievedEpic.getStatus(), "Эпик должен быть NEW после удаления всех подзадач.");
+        assertEquals(StatusEnum.NEW, retrievedEpic.getStatus(),
+                "Эпик должен быть NEW после удаления всех подзадач.");
     }
 
     @Test
-    void shouldUpdateTaskFields() {
-        Task task = new Task("Old Name", "Old Description", StatusEnum.NEW, Duration.ofMinutes(90), LocalDateTime.now());
+    void shouldUpdateTaskFields() throws TaskTimeConflictException {
+        Task task = new Task("Old Name", "Old Description", StatusEnum.NEW,
+                Duration.ofMinutes(90), LocalDateTime.now());
+
         taskManager.addTask(task);
 
         task.setTitle("New Name");
@@ -125,7 +152,16 @@ public class InMemoryTaskManagerTest {
         taskManager.updateTask(task);
 
         Task updatedTask = taskManager.getAnyTask(task.getId());
-        assertEquals("New Name", updatedTask.getTitle(), "Название задачи должно обновляться."); // Проверяем title
-        assertEquals("New Description", updatedTask.getDescription(), "Описание задачи должно обновляться."); // Проверяем description
+        assertEquals("New Name", updatedTask.getTitle(), "Название задачи должно обновляться.");
+        assertEquals("New Description", updatedTask.getDescription(), "Описание задачи должно обновляться.");
+    }
+
+    @Test
+    void deleteNonExistingSubtaskThrowsException() {
+        TaskNotFoundException thrown = assertThrows(TaskNotFoundException.class, () -> {
+            taskManager.deleteSubtask(999);
+        });
+
+        assertEquals("Ошибка: Подзадача с id 999 не найдена.", thrown.getMessage());
     }
 }

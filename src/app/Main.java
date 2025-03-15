@@ -1,5 +1,6 @@
 package app;
 
+import manager.exceptions.TaskTimeConflictException;
 import manager.FileBackedTaskManager;
 import model.enums.StatusEnum;
 import model.*;
@@ -17,8 +18,12 @@ public class Main {
         // Добавляем задачи
         Task task1 = new Task("Досмотреть сериал", "Досмотреть 6-й сезон Сопрано", StatusEnum.NEW, Duration.ofMinutes(90), LocalDateTime.now());
         Task task2 = new Task("Сделать домашнее задание", "Написать проект по Java", StatusEnum.NEW, Duration.ofMinutes(120), LocalDateTime.now().plusHours(1));
-        taskManager.addTask(task1);
-        taskManager.addTask(task2);
+        try {
+            taskManager.addTask(task1);
+            taskManager.addTask(task2);
+        } catch (TaskTimeConflictException e) {
+            System.out.println("Ошибка добавления задачи: " + e.getMessage());
+        }
 
         // Создаём эпик и подзадачи
         EpicTask epic1 = new EpicTask("Переезд", "Организовать переезд в новую квартиру");
