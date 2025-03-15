@@ -1,10 +1,13 @@
 package app;
 
+import manager.exceptions.TaskTimeConflictException;
 import manager.FileBackedTaskManager;
 import model.enums.StatusEnum;
 import model.*;
 import manager.TaskManager;
 import java.io.File;
+import java.time.LocalDateTime;
+import java.time.Duration;
 
 public class Main {
     public static void main(String[] args) {
@@ -13,17 +16,21 @@ public class Main {
         TaskManager taskManager = FileBackedTaskManager.loadFromFile(file);
 
         // Добавляем задачи
-        Task task1 = new Task("Досмотреть сериал", "Досмотреть 6-й сезон Сопрано", StatusEnum.NEW);
-        Task task2 = new Task("Сделать домашнее задание", "Написать проект по Java", StatusEnum.NEW);
-        taskManager.addTask(task1);
-        taskManager.addTask(task2);
+        Task task1 = new Task("Досмотреть сериал", "Досмотреть 6-й сезон Сопрано", StatusEnum.NEW, Duration.ofMinutes(90), LocalDateTime.now());
+        Task task2 = new Task("Сделать домашнее задание", "Написать проект по Java", StatusEnum.NEW, Duration.ofMinutes(120), LocalDateTime.now().plusHours(1));
+        try {
+            taskManager.addTask(task1);
+            taskManager.addTask(task2);
+        } catch (TaskTimeConflictException e) {
+            System.out.println("Ошибка добавления задачи: " + e.getMessage());
+        }
 
         // Создаём эпик и подзадачи
         EpicTask epic1 = new EpicTask("Переезд", "Организовать переезд в новую квартиру");
         taskManager.addEpic(epic1);
 
-        Subtask subtask1 = new Subtask("Упаковать вещи", "Собрать и упаковать все вещи", StatusEnum.NEW, epic1.getId());
-        Subtask subtask2 = new Subtask("Заказать транспорт", "Найти и заказать грузовик", StatusEnum.NEW, epic1.getId());
+        Subtask subtask1 = new Subtask("Упаковать вещи", "Собрать и упаковать все вещи", StatusEnum.NEW, Duration.ofMinutes(60), LocalDateTime.now().plusHours(2), epic1.getId());
+        Subtask subtask2 = new Subtask("Заказать транспорт", "Найти и заказать грузовик", StatusEnum.NEW, Duration.ofMinutes(30), LocalDateTime.now().plusHours(3), epic1.getId());
         taskManager.addSubtask(subtask1);
         taskManager.addSubtask(subtask2);
 

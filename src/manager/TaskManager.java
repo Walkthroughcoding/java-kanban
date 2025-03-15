@@ -1,5 +1,7 @@
 package manager;
 
+import manager.exceptions.TaskNotFoundException;
+import manager.exceptions.TaskTimeConflictException;
 import model.Task;
 import model.EpicTask;
 import model.Subtask;
@@ -7,7 +9,7 @@ import model.Subtask;
 import java.util.List;
 
 public interface TaskManager {
-    void addTask(Task task);
+    void addTask(Task task) throws TaskTimeConflictException;
 
     void addEpic(EpicTask epicTask);
 
@@ -23,7 +25,7 @@ public interface TaskManager {
 
     void deleteEpic(int id);
 
-    void deleteSubtask(int id);
+    void deleteSubtask(int id) throws TaskNotFoundException;
 
     List<Task> getAllTasks();
 
@@ -32,4 +34,7 @@ public interface TaskManager {
     Task getAnyTask(int id);
 
     List<Task> getHistory();
+
+    List<Task> getPrioritizedTasks();
+
 }
