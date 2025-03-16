@@ -1,17 +1,23 @@
 package manager;
 
+import manager.exceptions.TaskNotFoundException;
+import manager.exceptions.TaskTimeConflictException;
+import manager.exceptions.ManagerLoadException;
+import manager.exceptions.ManagerSaveException;
 import model.*;
 import model.enums.StatusEnum;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.time.LocalDateTime;
+import java.time.Duration;
 import java.util.List;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
     private final File file;
 
-    private  FileBackedTaskManager(File file) {
+    private FileBackedTaskManager(File file) {
         this.file = file;
     }
 
@@ -34,18 +40,10 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     private String toString(Task task) {
-        String type;
-        if (task instanceof EpicTask) {
-            type = "EPIC";
-        } else if (task instanceof Subtask) {
-            type = "SUBTASK";
-        } else {
-            type = "TASK";
-        }
+        String type = (task instanceof EpicTask) ? "EPIC" : (task instanceof Subtask) ? "SUBTASK" : "TASK";
 
-        return task.getId() + "," + type + "," +
-                task.getTitle() + "," + task.getStatus() + "," +
-                task.getDescription() +
+        return task.getId() + "," + type + "," + task.getTitle() + "," + task.getStatus() + "," + task.getDescription() + "," + (task.getStartTime() != null ? task.getStartTime() : "null") + "," + //  Добавляем startTime
+                (task.getDuration() != null ? task.getDuration().toMinutes() : "null") + //  Добавляем duration
                 (task instanceof Subtask ? "," + ((Subtask) task).getEpicId() : "");
     }
 
@@ -94,18 +92,20 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         String name = fields[2];
         StatusEnum status = StatusEnum.valueOf(fields[3]);
         String description = fields[4];
+        LocalDateTime startTime = fields[5].equals("null") ? null : LocalDateTime.parse(fields[5]); //  Загружаем startTime
+        Duration duration = fields[6].equals("null") ? null : Duration.ofMinutes(Long.parseLong(fields[6])); //  Загружаем duration
 
         Task task;
         switch (type) {
             case "TASK":
-                task = new Task(name, description, status);
+                task = new Task(name, description, status, duration, startTime); //  Теперь используем правильный конструктор
                 break;
             case "EPIC":
                 task = new EpicTask(name, description);
                 break;
             case "SUBTASK":
-                int epicId = Integer.parseInt(fields[5]);
-                task = new Subtask(name, description, status, epicId);
+                int epicId = Integer.parseInt(fields[7]); // Индекс сдвинулся из-за добавленных полей
+                task = new Subtask(name, description, status, duration, startTime, epicId); //  Теперь Subtask тоже загружает время
                 break;
             default:
                 throw new IllegalArgumentException("Неизвестный тип задачи: " + type);
@@ -115,7 +115,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
-    public void addTask(Task task) {
+    public void addTask(Task task) throws TaskTimeConflictException {
         super.addTask(task);
         save();
     }
@@ -139,9 +139,16 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
-    public void deleteTask(int id) {
-        super.deleteTask(id);
-        save();
+    public void deleteTask(int id) throws TaskNotFoundException {
+        if (!taskData.containsKey(id)) {
+            throw new TaskNotFoundException("Ошибка: Задача с id " + id + " не найдена.");
+        }
+
+        Task task = taskData.remove(id);
+        prioritizedTasks.remove(task);
+        historyManager.remove(id);
+        save();  // Сохраняем изменения в файл после удаления
+        System.out.println("Задача с id " + id + " удалена.");
     }
 }
 
