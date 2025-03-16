@@ -17,8 +17,8 @@ public class InMemoryTaskManager implements TaskManager {
     protected Map<Integer, EpicTask> epicData = new HashMap<>();
     protected Map<Integer, Subtask> subtaskData = new HashMap<>();
 
-    private final HistoryManager historyManager = Managers.getDefaultHistory();
-    private final TreeSet<Task> prioritizedTasks = new TreeSet<>(
+    protected final HistoryManager historyManager = Managers.getDefaultHistory();
+    protected final TreeSet<Task> prioritizedTasks = new TreeSet<>(
             Comparator.comparing(Task::getStartTime, Comparator.nullsLast(Comparator.naturalOrder())));
 
     public Map<Integer, Task> getTaskData() {
@@ -42,7 +42,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     public void addTask(Task task) throws TaskTimeConflictException {
-        if (isOverlapping(task)) {
+        if (isOverlapping(task)) {  // Если есть пересечение, выбрасываем исключение
             throw new TaskTimeConflictException("Ошибка: Задача пересекается по времени с другой задачей.");
         }
 
@@ -68,7 +68,7 @@ public class InMemoryTaskManager implements TaskManager {
             return;
         }
 
-        if (isOverlapping(subtask)) {
+        if (isOverlapping(subtask)) {  // Если есть пересечение, запрещаем добавление
             System.out.println("Ошибка: Подзадача пересекается по времени с другой задачей.");
             return;
         }
@@ -246,7 +246,7 @@ public class InMemoryTaskManager implements TaskManager {
         return prioritizedTasks.stream().anyMatch(existingTask ->
                 newTask.getStartTime() != null && existingTask.getStartTime() != null &&
                         newTask.getEndTime() != null && existingTask.getEndTime() != null &&
-                        newTask.getStartTime().isBefore(existingTask.getEndTime()) &&
-                        newTask.getEndTime().isAfter(existingTask.getStartTime()));
+                        (newTask.getStartTime().isBefore(existingTask.getEndTime()) &&
+                                newTask.getEndTime().isAfter(existingTask.getStartTime())));
     }
 }

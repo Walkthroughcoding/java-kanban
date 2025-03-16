@@ -139,8 +139,16 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     @Override
     public void deleteTask(int id) {
-        super.deleteTask(id);
-        save();
+        if (!taskData.containsKey(id)) {
+            System.out.println("Ошибка: Задача с id " + id + " не найдена.");
+            return;
+        }
+
+        Task task = taskData.remove(id);
+        prioritizedTasks.remove(task);
+        historyManager.remove(id);
+        save();  // Сохраняем изменения в файл после удаления
+        System.out.println("Задача с id " + id + " удалена.");
     }
 }
 
