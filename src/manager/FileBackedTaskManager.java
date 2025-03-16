@@ -1,5 +1,6 @@
 package manager;
 
+import manager.exceptions.TaskNotFoundException;
 import manager.exceptions.TaskTimeConflictException;
 import manager.exceptions.ManagerLoadException;
 import manager.exceptions.ManagerSaveException;
@@ -138,10 +139,9 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
-    public void deleteTask(int id) {
+    public void deleteTask(int id) throws TaskNotFoundException {
         if (!taskData.containsKey(id)) {
-            System.out.println("Ошибка: Задача с id " + id + " не найдена.");
-            return;
+            throw new TaskNotFoundException("Ошибка: Задача с id " + id + " не найдена.");
         }
 
         Task task = taskData.remove(id);

@@ -118,7 +118,12 @@ public class InMemoryTaskManagerTest {
                 Duration.ofMinutes(60), LocalDateTime.now());
 
         taskManager.addTask(task);
-        taskManager.deleteTask(task.getId());
+
+        try {
+            taskManager.deleteTask(task.getId());
+        } catch (TaskNotFoundException e) {
+            fail("Исключение TaskNotFoundException не должно было быть выброшено.");
+        }
 
         assertNull(taskManager.getAnyTask(task.getId()), "Удалённая задача не должна существовать.");
     }

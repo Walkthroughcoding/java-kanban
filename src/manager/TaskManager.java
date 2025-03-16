@@ -21,7 +21,7 @@ public interface TaskManager {
 
     void updateSubtask(Subtask subtask);
 
-    void deleteTask(int id);
+    void deleteTask(int id) throws TaskNotFoundException;
 
     void deleteEpic(int id);
 

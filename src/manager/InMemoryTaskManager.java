@@ -174,15 +174,15 @@ public class InMemoryTaskManager implements TaskManager {
         System.out.println("Подзадача с id " + id + " удалена.");
     }
 
-    public void deleteTask(int id) {
+    public void deleteTask(int id) throws TaskNotFoundException {
         Task task = taskData.remove(id);
-        if (task != null) {
-            historyManager.remove(id);
-            prioritizedTasks.remove(task);
-            System.out.println("Задача с id " + id + " удалена.");
-        } else {
-            System.out.println("Задача с id " + id + " не найдена.");
+        if (task == null) {
+            throw new TaskNotFoundException("Ошибка: Задача с id " + id + " не найдена.");
         }
+
+        prioritizedTasks.remove(task);
+        historyManager.remove(id);
+        System.out.println("Задача с id " + id + " удалена.");
     }
 
     public List<Task> getAllTasks() {
